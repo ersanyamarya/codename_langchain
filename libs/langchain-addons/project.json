@@ -1,0 +1,31 @@
+{
+  "name": "langchain-addons",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/langchain-addons/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/langchain-addons",
+        "tsConfig": "libs/langchain-addons/tsconfig.lib.json",
+        "packageJson": "libs/langchain-addons/package.json",
+        "main": "libs/langchain-addons/src/index.ts",
+        "assets": ["libs/langchain-addons/*.md"]
+      }
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs langchain-addons {args.ver} {args.tag}",
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/langchain-addons/**/*.ts", "libs/langchain-addons/package.json"]
+      }
+    }
+  },
+  "tags": []
+}
