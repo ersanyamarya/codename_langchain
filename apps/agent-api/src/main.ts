@@ -18,12 +18,13 @@ const model = new OpenAI({
 const embeddings = new OpenAIEmbeddings({
   openAIApiKey: openAIConfig.apiKey,
 })
-// const blogAgent = new BlogCreateAgent(model, serperAIConfig.apiKey, embeddings)
+// const blogAgent = new BlogCreateAgent(model, serperAIConfig.apiKey, embeddings, redisClient)
 const blogWriter = new BlogWriter(model, embeddings, serperAIConfig.apiKey, redisClient)
 async function main() {
   await redisClient.connect()
   try {
     const result = await blogWriter.execute(title)
+    // const result = await blogAgent.execute(title)
     writeFileSync('blog.md', result)
     // const result = await searchGoogleWithQueryAndApiKey('The future of MQTT', serperAIConfig.apiKey)
     // console.dir(result, { depth: null })

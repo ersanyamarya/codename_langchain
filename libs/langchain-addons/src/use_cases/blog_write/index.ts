@@ -24,26 +24,26 @@ You should start writing the blog post, here are a few things to keep in mind:
 
   **Follow the following format for the Blog post:**
 
-- Title: Include the benefit, number of items, and a short timeframe.
-- Introduction: Briefly introduce the problem and highlight the benefits readers will gain from reading the post.
+- Title: Include the benefit, number of items, and a short time-frame.
 - Subheadings: Provide an overview and clear benefit for each tip.
-- Action items: Outline the steps to implement each tip.
-- Conclusion: Encourage readers to take action based on the tips provided.
+- The first Subheading should be "Introduction": Briefly introduce the problem and highlight the benefits readers will gain from reading the post.
+- Last Subheading should be "Conclusion": Encourage readers to take action based on the tips provided.
 - **CTA:** End the post with a compelling call to action. Ask a question related to the content, such as "What tip did you find most helpful?" or "Which of the mentioned tips are you going to apply right away?" Encourage readers to engage and share their thoughts.
 
 Output should be a markdown file with metadata and the blog post content.
+
 Example Output:
 ---
 kind: blog (always blog)
 title: <Title of the Blog Post>
 slug: <slug of the blog post>
 executiveSummary: <executive summary of the blog post>
-tags: <array of tags>
+keywords: <array of keywords for the blog post>
+reference: <array of 5 links that were used to write the blog post>
 author: ersanyamarya
 date: <date>
 ---
 <Blog Post Content>
-
 `
 const promptTemplate = new PromptTemplate({
   template: blogWriterPromptTemplate,
