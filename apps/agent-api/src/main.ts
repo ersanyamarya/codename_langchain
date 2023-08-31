@@ -1,12 +1,15 @@
-import { openAIConfig } from '@codename-langchain/config'
+import { openAIConfig, serperAIConfig, redisClient } from '@codename-langchain/config'
 import { YoutubeTranscript } from 'youtube-transcript'
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
-import { getSummaryFromTextAndObjective } from '@ersanyamarya/langchain-addons'
-import { OpenAI } from 'langchain/llms/openai'
+import { BlogWriter, getSummaryFromTextAndObjective, searchGoogleWithQueryAndApiKey } from '@ersanyamarya/langchain-addons'
+import { OpenAI, OpenAIChat } from 'langchain/llms/openai'
 import { logger } from '@ersanyamarya/common-node-utils'
 
+import { BlogCreateAgent } from '@ersanyamarya/langchain-addons'
+import { writeFileSync } from 'fs'
+
 const url = 'https://www.youtube.com/watch?v=oMr_uEirMIY'
-const title = 'The future of MQTT'
+const title = 'Why is MQTT so popular?'
 const model = new OpenAI({
   openAIApiKey: openAIConfig.apiKey,
   temperature: 0.6,
@@ -15,8 +18,15 @@ const model = new OpenAI({
 const embeddings = new OpenAIEmbeddings({
   openAIApiKey: openAIConfig.apiKey,
 })
+// const blogAgent = new BlogCreateAgent(model, serperAIConfig.apiKey, embeddings)
+const blogWriter = new BlogWriter(model, embeddings, serperAIConfig.apiKey, redisClient)
 async function main() {
+  await redisClient.connect()
   try {
+    const result = await blogWriter.execute(title)
+    writeFileSync('blog.md', result)
+    // const result = await searchGoogleWithQueryAndApiKey('The future of MQTT', serperAIConfig.apiKey)
+    // console.dir(result, { depth: null })
     // logger.info('----------------- Transcription ----------------- ')
     // const transcript = await YoutubeTranscript.fetchTranscript(url)
     // logger.info('----------------- Complete Transcription ----------------- ')

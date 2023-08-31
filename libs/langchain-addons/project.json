@@ -12,7 +12,21 @@
         "tsConfig": "libs/langchain-addons/tsconfig.lib.json",
         "packageJson": "libs/langchain-addons/package.json",
         "main": "libs/langchain-addons/src/index.ts",
-        "assets": ["libs/langchain-addons/*.md"]
+        "assets": ["libs/langchain-addons/*.md"],
+        "watch": true
+      },
+      "configurations":{
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "libs/langchain-addons/src/environments/environment.ts",
+              "with": "libs/langchain-addons/src/environments/environment.prod.ts"
+            }
+          ]
+        }
       }
     },
     "publish": {

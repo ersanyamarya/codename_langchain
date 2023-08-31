@@ -10,7 +10,7 @@
     "@nx/jest": "16.7.4",
     "@nx/js": "16.7.4",
     "@nx/linter": "16.7.4",
-    "@nx/node": "^16.7.4",
+    "@nx/node": "16.7.4",
     "@nx/workspace": "16.7.4",
     "@types/jest": "^29.4.0",
     "@types/node": "~18.7.1",
@@ -36,6 +36,7 @@
     "hnswlib-node": "^1.4.2",
     "langchain": "^0.0.137",
     "openai": "^4.3.1",
+    "redis": "^4.6.8",
     "tslib": "^2.6.2",
     "youtube-transcript": "^1.0.6",
     "zod": "^3.22.2"

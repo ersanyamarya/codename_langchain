@@ -1,14 +1,9 @@
 import { PromptTemplate } from 'langchain'
-import { RetrievalQAChain } from 'langchain/chains'
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
 import { OpenAI } from 'langchain/llms/openai'
 import { StructuredOutputParser } from 'langchain/output_parsers'
-import { ContextualCompressionRetriever } from 'langchain/retrievers/contextual_compression'
-import { LLMChainExtractor } from 'langchain/retrievers/document_compressors/chain_extract'
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
-import { HNSWLib } from 'langchain/vectorstores/hnswlib'
 import { z } from 'zod'
-import { parseOutput } from '../utils'
+import { getRetrievalChain, parseOutput } from '../utils'
 
 const summarizeTemplatePrompt = `I want the following document to be summarized and to find: {title}.
 Output Format Instruction: {formatInstructions}
@@ -37,30 +32,13 @@ const promptTemplate = new PromptTemplate({
   },
 })
 
-const textSplitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 1500,
-  chunkOverlap: 100,
-  separators: ['\n', ' ', '.', ',', ';', ':', '!', '?', '(', ')', '[', ']', '{', '}', '"', "'"],
-  keepSeparator: false,
-})
-
 export async function getSummaryFromTextAndObjective(
   text: string,
   objective: string,
   model: OpenAI,
   embeddings: OpenAIEmbeddings
 ): Promise<SummarizeOutput> {
-  const baseCompressor = LLMChainExtractor.fromLLM(model)
-
-  const docs = await textSplitter.createDocuments([text])
-
-  const vectorStore = await HNSWLib.fromDocuments(docs, embeddings)
-
-  const retriever = new ContextualCompressionRetriever({
-    baseCompressor,
-    baseRetriever: vectorStore.asRetriever(),
-  })
-  const chain = RetrievalQAChain.fromLLM(model, retriever)
+  const chain = await getRetrievalChain(model, text, embeddings)
   const query = await promptTemplate.format({
     title: objective,
   })
