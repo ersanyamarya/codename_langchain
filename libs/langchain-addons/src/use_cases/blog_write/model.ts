@@ -25,20 +25,26 @@ export class BlogWriterModel {
   }
 
   get searchResults() {
-    return this.redisData.searchResults || {}
+    return this.redisData?.searchResults
   }
 
   async setSearchResults(searchResults: OutputSearchGoogle) {
-    this.redisData.searchResults = searchResults
+    this.redisData = {
+      ...this.redisData,
+      searchResults,
+    }
     await this.redisClient.set(this.topic, JSON.stringify(this.redisData))
   }
 
   get linkScrapedSummary() {
-    return this.redisData.linkScrapedSummary || {}
+    return this.redisData?.linkScrapedSummary || {}
   }
 
   async setLinkScrapedSummary(linkScrapedSummary: LinkScrapedSummaryType) {
-    this.redisData.linkScrapedSummary = linkScrapedSummary
+    this.redisData = {
+      ...this.redisData,
+      linkScrapedSummary,
+    }
     await this.redisClient.set(this.topic, JSON.stringify(this.redisData))
   }
 }

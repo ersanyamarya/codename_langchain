@@ -23,10 +23,12 @@ const blogWriter = new BlogWriter(model, embeddings, serperAIConfig.apiKey, redi
 async function main() {
   await redisClient.connect()
   try {
-    const result = await blogWriter.execute(title)
     // const result = await blogAgent.execute(title)
+    const result = await blogWriter.execute(title)
     writeFileSync('blog.md', result)
     // const result = await searchGoogleWithQueryAndApiKey('The future of MQTT', serperAIConfig.apiKey)
+    // console.log(result)
+
     // console.dir(result, { depth: null })
     // logger.info('----------------- Transcription ----------------- ')
     // const transcript = await YoutubeTranscript.fetchTranscript(url)

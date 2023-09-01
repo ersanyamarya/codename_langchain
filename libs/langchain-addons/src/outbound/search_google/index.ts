@@ -6,6 +6,8 @@ export const searchGoogleResult = z
   .object({
     links: z.array(z.string()).describe('The top 10 links for the query'),
     peopleAlsoAsk: z.array(z.string()).describe('The questions that people also ask for the query'),
+    relatedSearches: z.array(z.string()).describe('The related searches for the query'),
+    reference: z.array(z.string()).describe('The reference for the query'),
   })
   .describe('The output of the search_google tool')
 
@@ -25,8 +27,9 @@ type OutputSearchGoogle = z.infer<typeof searchGoogleResult>
  */
 export async function searchGoogleWithQueryAndApiKey(query: string, apiKey: string): Promise<OutputSearchGoogle> {
   const data = JSON.stringify({
+    // Query for only articles and blog posts in English
     q: query,
-    gl: 'de',
+    gl: 'us',
   })
   const config = {
     method: 'post',
@@ -39,6 +42,10 @@ export async function searchGoogleWithQueryAndApiKey(query: string, apiKey: stri
   }
   const links: string[] = []
   const peopleAlsoAsk: string[] = []
+  const relatedSearches: string[] = []
+
+  const reference: string[] = []
+
   logger.info('----------------- Search Google ----------------- ')
 
   const response = await axios(config)
@@ -47,23 +54,50 @@ export async function searchGoogleWithQueryAndApiKey(query: string, apiKey: stri
       logger.error(error)
       return null
     })
+
   logger.info('----------------- Complete Search Google ----------------- ')
   logger.info('----------------- Parse Search Google ----------------- ')
-  response?.peopleAlsoAsk.forEach((answer: any) => {
-    peopleAlsoAsk.push(answer.question)
-    links.push(answer.link)
-  })
+
+  if (response?.peopleAlsoAsk && response?.peopleAlsoAsk.length > 0)
+    response?.peopleAlsoAsk.forEach((answer: any, index: number) => {
+      if (index > 5) return
+      peopleAlsoAsk.push(answer.question)
+      reference.push(`[${answer.question}](${answer.link}): ${answer.title}`)
+      links.push(answer.link)
+    })
   if (response?.answerBox?.link) links.push(response?.answerBox?.link)
 
-  response?.organic.forEach((answer: any) => {
-    if (answer.link) links.push(answer.link)
-    else return
-  })
+  if (response?.organic && response?.organic.length > 0)
+    response?.organic.forEach((answer: any, index: number) => {
+      if (index > 5) return
+      if (answer?.attributes?.Duration && !isLessThanTenMinutes(answer?.attributes?.Duration)) return
+      if (answer.link) {
+        reference.push(`[${answer.title}](${answer.link})`)
+        links.push(answer.link)
+      } else return
+    })
+  if (response?.relatedSearches && response?.relatedSearches.length > 0)
+    response?.relatedSearches.forEach((answer: any, index: number) => {
+      if (index > 5) return
+      relatedSearches.push(answer.query)
+    })
+
   logger.info('----------------- Complete Parse Search Google ----------------- ')
   return searchGoogleResult.parse({
     peopleAlsoAsk,
     links,
+    relatedSearches,
+    reference,
   })
 }
 
 export type { OutputSearchGoogle }
+
+// check if "Duration": "1:02:51" or "15:49" is less than 10 minutes
+function isLessThanTenMinutes(duration: string) {
+  const durationArray = duration.split(':')
+  if (durationArray.length === 3) return false
+  const minutes = parseInt(durationArray[0])
+  if (minutes > 10) return false
+  return true
+}
