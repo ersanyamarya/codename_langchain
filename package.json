@@ -2,7 +2,9 @@
   "name": "@codename-langchain/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
+  },
   "private": true,
   "devDependencies": {
     "@nx/esbuild": "16.7.4",

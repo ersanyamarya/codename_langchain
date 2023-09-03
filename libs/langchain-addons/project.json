@@ -15,7 +15,7 @@
         "assets": ["libs/langchain-addons/*.md"],
         "watch": true
       },
-      "configurations":{
+      "configurations": {
         "production": {
           "optimization": true,
           "extractLicenses": true,

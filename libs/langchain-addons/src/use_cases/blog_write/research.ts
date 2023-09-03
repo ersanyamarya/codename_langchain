@@ -1,12 +1,12 @@
-import { RedisClientType } from 'redis'
 import { logger } from '@ersanyamarya/common-node-utils'
-import { OutputSearchGoogle, searchGoogleWithQueryAndApiKey } from '../../outbound'
-import { BlogWriterModel, LinkScrapedSummaryType } from './model'
+import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
+import { OpenAI } from 'langchain/llms/openai'
+import { WebBrowser } from 'langchain/tools/webbrowser'
+import { RedisClientType } from 'redis'
 import { YoutubeTranscript } from 'youtube-transcript'
 import { getSummaryFromTextAndObjective } from '../../chains'
-import { OpenAI } from 'langchain/llms/openai'
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
-import { WebBrowser } from 'langchain/tools/webbrowser'
+import { OutputSearchGoogle, searchGoogleWithQueryAndApiKey } from '../../outbound'
+import { BlogWriterModel, LinkScrapedSummaryType } from './model'
 interface BlogWriterResearchInput {
   topic: string
   redisClient: RedisClientType
@@ -53,7 +53,7 @@ export async function research({
     embeddings,
   })
 
-  const scrapeSet = await Promise.allSettled(
+  await Promise.allSettled(
     searchResults.links.map(async link => {
       if (linkScrapedSummary[link]) {
         foundInRedis++
