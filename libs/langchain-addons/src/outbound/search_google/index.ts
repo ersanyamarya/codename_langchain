@@ -51,8 +51,7 @@ export async function searchGoogleWithQueryAndApiKey(query: string, apiKey: stri
   const response = await axios(config)
     .then(response => response.data)
     .catch(error => {
-      logger.error(error)
-      return null
+      throw new Error(error?.response?.data?.message || "Couldn't fetch data from Google")
     })
 
   logger.info('----------------- Complete Search Google ----------------- ')

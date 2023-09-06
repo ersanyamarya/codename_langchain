@@ -7,8 +7,7 @@ import { OpenAI } from 'langchain/llms/openai'
 import { writeFileSync } from 'fs'
 import { ChatOpenAI } from 'langchain/chat_models/openai'
 
-const url = 'https://www.youtube.com/watch?v=oMr_uEirMIY'
-const title = 'Where is MQTT Used?'
+const title = 'How does Sparkplug B change the IoT landscape?'
 const model = new OpenAI({
   openAIApiKey: openAIConfig.apiKey,
   temperature: 0.1,
@@ -16,7 +15,7 @@ const model = new OpenAI({
 })
 const chatModel = new ChatOpenAI({
   openAIApiKey: openAIConfig.apiKey,
-  temperature: 0.1,
+  temperature: 0.4,
   modelName: 'gpt-3.5-turbo',
 })
 const embeddings = new OpenAIEmbeddings({

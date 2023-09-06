@@ -48,8 +48,8 @@ export class BlogWriter {
 
     logger.info('----------------- Blog Writer: 🤔 Generating Blog ----------------- ')
 
-    const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000 })
-    const docs = await textSplitter.createDocuments([scrapedData])
+    const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 500, chunkOverlap: 20 })
+    const docs = await textSplitter.createDocuments([scrapedData, searchResults.reference.join('\n')])
     const vectorStore = await HNSWLib.fromDocuments(docs, this.embeddings)
 
     const chain = new RetrievalQAChain({
