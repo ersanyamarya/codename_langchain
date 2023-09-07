@@ -1,10 +1,12 @@
 import { logger } from '@ersanyamarya/common-node-utils'
+import { Readability } from '@mozilla/readability'
+import { JSDOM } from 'jsdom'
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
 import { OpenAI } from 'langchain/llms/openai'
-import { WebBrowser } from 'langchain/tools/webbrowser'
+import puppeteer from 'puppeteer'
 import { RedisClientType } from 'redis'
 import { YoutubeTranscript } from 'youtube-transcript'
-import { getSummaryFromTextAndObjective } from '../../chains'
+import { SummarizeInputType, getSummaryFromTextAndObjective } from '../../chains'
 import { OutputSearchGoogle, searchGoogleWithQueryAndApiKey } from '../../outbound'
 import { BlogWriterModel, LinkScrapedSummaryType } from './model'
 interface BlogWriterResearchInput {
@@ -37,7 +39,7 @@ export async function research({
     logger.info('----------------- Blog Writer Research: 🔎 Fetch from Google ----------------- ')
     searchResults = await searchGoogleWithQueryAndApiKey(topic, serperApiKey)
 
-    const searchYoutubeResults = await searchGoogleWithQueryAndApiKey(topic + ' Youtube', serperApiKey)
+    const searchYoutubeResults = await searchGoogleWithQueryAndApiKey(topic + ' YouTube', serperApiKey)
     searchResults.links = [...searchResults.links, ...searchYoutubeResults.links]
     await blogWriterModel.setSearchResults(searchResults)
   } else logger.info('----------------- Blog Writer Research: ✅ Found in Redis ----------------- ')
@@ -48,11 +50,12 @@ export async function research({
   let foundInRedis = 0
   let notFoundInRedis = 0
 
-  const webBrowser = new WebBrowser({
+  const summarizeInput: SummarizeInputType = {
+    objective: topic,
+    question: searchResults.peopleAlsoAsk.join('\n'),
     model,
     embeddings,
-  })
-
+  }
   await Promise.allSettled(
     searchResults.links.map(async link => {
       if (linkScrapedSummary[link]) {
@@ -61,15 +64,16 @@ export async function research({
       }
       if (isLinkYoutube(link)) {
         const transcript = await YoutubeTranscript.fetchTranscript(link)
-        const result = await getSummaryFromTextAndObjective(transcript.map(t => t.text).join(' '), topic, model, embeddings)
-        if (result.canProvideAnswer && result.summary.length > 100) {
+        const result = await getSummaryFromTextAndObjective(transcript.map(t => t.text).join(' '), summarizeInput)
+        if (result.length > 100) {
           notFoundInRedis++
-          linkScrapedSummary[link] = result.summary
-          return result.summary
+          linkScrapedSummary[link] = result
+          return result
         }
         return ''
       }
-      const text = await webBrowser.call(link + ',' + topic)
+      const browserData = await scrapeDataFromUrl(link)
+      const text = await getSummaryFromTextAndObjective(browserData, summarizeInput)
       notFoundInRedis++
       linkScrapedSummary[link] = text
       return text
@@ -102,3 +106,21 @@ const isLinkYoutube = (link: string) => {
 //   const transcript = await YoutubeTranscript.fetchTranscript(link)
 //   const result = await getSummaryFromTextAndObjective(transcript.map(t => t.text).join(' '), title, model, embeddings)
 // }
+
+async function scrapeDataFromUrl(url: string) {
+  const browser = await puppeteer.launch({
+    headless: 'new',
+  })
+
+  const page = await browser.newPage()
+  await page.goto(url)
+  const content = await page.content()
+  const doc = new JSDOM(content, {
+    url,
+  })
+  await browser.close()
+  const reader = new Readability(doc.window.document)
+  const article = reader.parse().textContent
+
+  return article.replace(/\s\s+/g, ' ').replace(/\n/g, ' ').replace(/\t/g, ' ').replace(/\r/g, ' ').toString()
+}

@@ -40,6 +40,7 @@ export async function searchGoogleWithQueryAndApiKey(query: string, apiKey: stri
     },
     data: data,
   }
+
   const links: string[] = []
   const peopleAlsoAsk: string[] = []
   const relatedSearches: string[] = []
@@ -53,7 +54,6 @@ export async function searchGoogleWithQueryAndApiKey(query: string, apiKey: stri
     .catch(error => {
       throw new Error(error?.response?.data?.message || "Couldn't fetch data from Google")
     })
-
   logger.info('----------------- Complete Search Google ----------------- ')
   logger.info('----------------- Parse Search Google ----------------- ')
 
@@ -69,7 +69,7 @@ export async function searchGoogleWithQueryAndApiKey(query: string, apiKey: stri
   if (response?.organic && response?.organic.length > 0)
     response?.organic.forEach((answer: any, index: number) => {
       if (index > 5) return
-      if (answer?.attributes?.Duration && !isLessThanTenMinutes(answer?.attributes?.Duration)) return
+      if (answer?.attributes?.Duration && !isLessThanDefinedMinutes(answer?.attributes?.Duration)) return
       if (answer.link) {
         reference.push(`[${answer.title}](${answer.link})`)
         links.push(answer.link)
@@ -92,11 +92,10 @@ export async function searchGoogleWithQueryAndApiKey(query: string, apiKey: stri
 
 export type { OutputSearchGoogle }
 
-// check if "Duration": "1:02:51" or "15:49" is less than 10 minutes
-function isLessThanTenMinutes(duration: string) {
+function isLessThanDefinedMinutes(duration: string) {
   const durationArray = duration.split(':')
   if (durationArray.length === 3) return false
   const minutes = parseInt(durationArray[0])
-  if (minutes > 10) return false
+  if (minutes > 18) return false
   return true
 }
