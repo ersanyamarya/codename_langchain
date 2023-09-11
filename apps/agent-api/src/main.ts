@@ -8,7 +8,7 @@ import { writeFileSync } from 'fs'
 import { ChatOpenAI } from 'langchain/chat_models/openai'
 // import { gotScraping } from 'got-scraping'
 
-const title = '5 Skills You need to start a career in IoT'
+const title = 'How does Sparkplug B change the IoT landscape?'
 
 const model = new OpenAI({
   openAIApiKey: openAIConfig.apiKey,

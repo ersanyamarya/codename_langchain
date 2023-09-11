@@ -75,8 +75,8 @@ date: <date>
 # <Title of the Blog Post>
 introduction paragraph
 - Briefly introduce the problem and highlight the benefits readers will gain from reading the post.
-## Subheading 1
-at least 2 paragraphs explaining the subheading
+## Subheading 1 (Use Emojis)
+at least 2 paragraphs explaining the subheading (Use Emojis)
 ## Subheading .....
 ...
 ## Conclusion
@@ -86,7 +86,8 @@ at least 2 paragraphs explaining the subheading
 - 5 links (unordered list) in the Markdown link format [Title](link). These should be real links, not randomly chosen.
 ---
 
-Write a blog post about the subject: {question}. The blog post should answer the following questions indirectly, these keywords are important:
+Write a blog post about the subject: {question}.
+The blog post should answer the following questions indirectly not directly, these keywords are important:
 {peopleAlsoAsk}
 
 Here is the background information context that you should use to write the blog:
