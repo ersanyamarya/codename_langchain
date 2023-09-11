@@ -1,10 +1,27 @@
+import { serperAIConfig } from '@codename-langchain/config'
 import { TopicModel } from '@codename-langchain/mongo'
-import { composeMongoose } from 'graphql-compose-mongoose'
-import genSchema from '../../schemaGenerator'
 import { GQLErrorHandler } from '@ersanyamarya/apollo-graphql-helper'
 import { searchOnGoogle } from '@ersanyamarya/langchain-addons'
-import { serperAIConfig } from '@codename-langchain/config'
+import { schemaComposer } from 'graphql-compose'
+import { composeMongoose } from 'graphql-compose-mongoose'
 const TopicTC = composeMongoose(TopicModel, {})
+
+TopicTC.addResolver({
+  kind: 'query',
+  name: 'topicFindAll',
+  type: [TopicTC],
+  args: {
+    limit: 'Int',
+    skip: 'Int',
+    sort: 'EnumSortOrder',
+  },
+  resolve: async ({ args }) => {
+    const { limit, skip, sort } = args
+    const topics = await TopicModel.find().limit(limit).skip(skip).sort({ _id: sort })
+    return topics
+  },
+})
+
 TopicTC.addResolver({
   kind: 'mutation',
   name: 'topicCreateOne',
@@ -24,7 +41,7 @@ TopicTC.addResolver({
 })
 
 TopicTC.addResolver({
-  kind: 'query',
+  kind: 'mutation',
   name: 'topicStartGoogleSearch',
   type: TopicTC,
   args: {
@@ -76,11 +93,63 @@ TopicTC.addResolver({
   },
 })
 
+TopicTC.addResolver({
+  kind: 'mutation',
+  name: 'topicDeleteOne',
+  type: TopicTC,
+  args: {
+    id: 'MongoID!',
+  },
+  resolve: async ({ args }) => {
+    const { id } = args
+    const topic = await TopicModel.findByIdAndDelete(id)
+    if (!topic) GQLErrorHandler('Topic not found', 'NOT_FOUND', { location: 'topicDeleteOne' })
+    return topic
+  },
+})
+
+const EnumResourceType = schemaComposer.createEnumTC({
+  name: 'EnumResourceType',
+  values: {
+    ORGANIC: { value: 'organic' },
+    PEOPLE_ALSO_ASK: { value: 'peopleAlsoAsk' },
+    RELATED_SEARCHES: { value: 'relatedSearches' },
+  },
+})
+
+TopicTC.addResolver({
+  kind: 'mutation',
+  name: 'topicDeleteResource',
+  type: TopicTC,
+  args: {
+    id: 'MongoID!',
+    indexes: '[Int!]!',
+    resourceType: {
+      type: EnumResourceType,
+      defaultValue: 'organic',
+    },
+  },
+  resolve: async ({ args }) => {
+    const { id, indexes, resourceType } = args
+    const topic = await TopicModel.findById(id)
+    if (!topic) GQLErrorHandler('Topic not found', 'NOT_FOUND', { location: 'topicDeleteOrganic' })
+    if (resourceType === 'organic') topic.deleteOrganic(indexes)
+    else if (resourceType === 'peopleAlsoAsk') topic.deletePeopleAlsoAsk(indexes)
+    else if (resourceType === 'relatedSearches') topic.deleteRelatedSearches(indexes)
+
+    await topic.save()
+    return topic
+  },
+})
+
 const queries = {
-  topicStartGoogleSearch: TopicTC.getResolver('topicStartGoogleSearch'),
+  topicFindAll: TopicTC.getResolver('topicFindAll'),
 }
 const mutations = {
   topicCreateOne: TopicTC.getResolver('topicCreateOne'),
+  topicDeleteOne: TopicTC.getResolver('topicDeleteOne'),
+  topicDeleteResource: TopicTC.getResolver('topicDeleteResource'),
+  topicStartGoogleSearch: TopicTC.getResolver('topicStartGoogleSearch'),
 }
 
 export default {
