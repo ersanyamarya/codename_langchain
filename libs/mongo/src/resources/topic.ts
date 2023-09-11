@@ -6,11 +6,45 @@ const TopicSchema = new Schema(
       type: String,
       required: true,
     },
-    peopleAlsoAsk: {
-      type: [String],
+    organic: {
+      type: {
+        title: {
+          type: String,
+          required: true,
+        },
+        link: {
+          type: String,
+          required: true,
+        },
+        snippet: {
+          type: String,
+          required: true,
+        },
+        date: {
+          type: String,
+          required: false,
+        },
+      },
     },
-    links: {
-      type: [String],
+    peopleAlsoAsk: {
+      type: {
+        question: {
+          type: String,
+          required: true,
+        },
+        snippet: {
+          type: String,
+          required: true,
+        },
+        title: {
+          type: String,
+          required: true,
+        },
+        link: {
+          type: String,
+          required: true,
+        },
+      },
     },
     relatedSearches: {
       type: [String],
@@ -23,38 +57,22 @@ const TopicSchema = new Schema(
   }
 ).index({ userID: 1, name: 1 }, { unique: true })
 
-TopicSchema.methods = {
-  async addPeopleAlsoAsk(peopleAlsoAsk: string[]) {
-    this.peopleAlsoAsk = new Set([...this.peopleAlsoAsk, ...peopleAlsoAsk])
-    await this.save()
-  },
-  async addLinks(links: string[]) {
-    this.links = new Set([...this.links, ...links])
-    await this.save()
-  },
-  async addRelatedSearches(relatedSearches: string[]) {
-    this.relatedSearches = new Set([...this.relatedSearches, ...relatedSearches])
-    await this.save()
-  },
-
-  async removePeopleAlsoAsk(peopleAlsoAsk: string[]) {
-    this.peopleAlsoAsk = this.peopleAlsoAsk.filter((item: string) => !peopleAlsoAsk.includes(item))
-    await this.save()
-  },
-  async removeLinks(links: string[]) {
-    this.links = this.links.filter((item: string) => !links.includes(item))
-    await this.save()
-  },
-  async removeRelatedSearches(relatedSearches: string[]) {
-    this.relatedSearches = this.relatedSearches.filter((item: string) => !relatedSearches.includes(item))
-    await this.save()
-  },
-}
+TopicSchema.methods = {}
 
 export interface Topic extends Document {
   name: string
-  peopleAlsoAsk: string[]
-  links: string[]
+  organic: {
+    title: string
+    link: string
+    snippet: string
+    date?: string
+  }
+  peopleAlsoAsk: {
+    question: string
+    snippet: string
+    title: string
+    link: string
+  }
   relatedSearches: string[]
 }
 

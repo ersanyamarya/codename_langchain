@@ -99,3 +99,11 @@ function isLessThanDefinedMinutes(duration: string) {
   if (minutes > 18) return false
   return true
 }
+
+function durationBetween(minMinutes: number, maxMinutes: number, duration: string) {
+  const durationArray = duration.split(':')
+  if (durationArray.length === 3) return false
+  const minutes = parseInt(durationArray[0])
+  if (minutes > maxMinutes || minutes < minMinutes) return false
+  return true
+}

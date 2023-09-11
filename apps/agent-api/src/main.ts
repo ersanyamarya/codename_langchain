@@ -1,11 +1,12 @@
 import { openAIConfig, redisClient, serperAIConfig } from '@codename-langchain/config'
 import { logger } from '@ersanyamarya/common-node-utils'
-import { BlogWriter } from '@ersanyamarya/langchain-addons'
+import { BlogWriter, searchOnGoogle } from '@ersanyamarya/langchain-addons'
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
 import { OpenAI } from 'langchain/llms/openai'
 
 import { writeFileSync } from 'fs'
 import { ChatOpenAI } from 'langchain/chat_models/openai'
+import axios from 'axios'
 // import { gotScraping } from 'got-scraping'
 
 const title = 'How does Sparkplug B change the IoT landscape?'
@@ -30,19 +31,15 @@ const blogWriter = new BlogWriter(model, chatModel, embeddings, serperAIConfig.a
 async function main() {
   await redisClient.connect()
   try {
-    // const result = await blogAgent.execute(title)
-    const result = await blogWriter.execute(title)
-    writeFileSync('blog.md', result)
-    // const result = await searchGoogleWithQueryAndApiKey('The future of MQTT', serperAIConfig.apiKey)
-    // console.log(result)
+    const results = await searchOnGoogle(title, {
+      apiKey: serperAIConfig.apiKey,
+      gl: 'us',
+      youtube: true,
+    })
 
-    // console.dir(result, { depth: null })
-    // logger.info('----------------- Transcription ----------------- ')
-    // // const transcript = await YoutubeTranscript.fetchTranscript(url).then(res => res.map(t => t.text).join(' '))
-    // const scraped = await scrapeDataFromUrl(url)
-    // const data = await getSummaryFromTextAndObjective(scraped, title, questions.join('\n'), model, embeddings)
-    // // console.dir(scraped, { depth: null })
-    // writeFileSync('data.txt', data.toString())
+    console.log(results.relatedSearches)
+
+    writeFileSync('data.json', JSON.stringify(results, null, 2))
   } catch (e) {
     logger.error(e)
   }
