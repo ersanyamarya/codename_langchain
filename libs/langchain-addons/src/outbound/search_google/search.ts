@@ -1,3 +1,4 @@
+import { logger } from '@ersanyamarya/common-node-utils'
 import axios from 'axios'
 
 export interface GoogleSearchResults {
@@ -53,6 +54,7 @@ export async function searchOnGoogle(
   query: string,
   { apiKey, gl, youtube }: GoogleSearchConfig
 ): Promise<GoogleSearchResults> {
+  logger.info(`----------------- Search Google :${youtube ? 'youtube' : 'google'} ----------------- `)
   const data = JSON.stringify({ q: query + (youtube ? ' + youtube' : ''), gl })
   const config = {
     method: 'post',
@@ -63,9 +65,12 @@ export async function searchOnGoogle(
     },
     data: data,
   }
-  return await axios(config)
+
+  const results = await axios(config)
     .then(response => response.data)
     .catch(error => {
       throw new Error(error?.response?.data?.message || "Couldn't fetch data from Google")
     })
+  logger.info('----------------- Complete Search Google ----------------- ')
+  return results
 }

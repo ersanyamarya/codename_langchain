@@ -7,44 +7,48 @@ const TopicSchema = new Schema(
       required: true,
     },
     organic: {
-      type: {
-        title: {
-          type: String,
-          required: true,
+      type: [
+        {
+          title: {
+            type: String,
+            required: true,
+          },
+          link: {
+            type: String,
+            required: true,
+          },
+          snippet: {
+            type: String,
+            required: true,
+          },
+          date: {
+            type: String,
+            required: false,
+          },
         },
-        link: {
-          type: String,
-          required: true,
-        },
-        snippet: {
-          type: String,
-          required: true,
-        },
-        date: {
-          type: String,
-          required: false,
-        },
-      },
+      ],
     },
     peopleAlsoAsk: {
-      type: {
-        question: {
-          type: String,
-          required: true,
+      type: [
+        {
+          question: {
+            type: String,
+            required: true,
+          },
+          snippet: {
+            type: String,
+            required: true,
+          },
+          title: {
+            type: String,
+            required: true,
+          },
+          link: {
+            type: String,
+            required: true,
+          },
         },
-        snippet: {
-          type: String,
-          required: true,
-        },
-        title: {
-          type: String,
-          required: true,
-        },
-        link: {
-          type: String,
-          required: true,
-        },
-      },
+      ],
     },
     relatedSearches: {
       type: [String],
@@ -66,13 +70,13 @@ export interface Topic extends Document {
     link: string
     snippet: string
     date?: string
-  }
+  }[]
   peopleAlsoAsk: {
     question: string
     snippet: string
     title: string
     link: string
-  }
+  }[]
   relatedSearches: string[]
 }
 

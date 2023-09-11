@@ -1,48 +1,71 @@
-import { openAIConfig, redisClient, serperAIConfig } from '@codename-langchain/config'
-import { logger } from '@ersanyamarya/common-node-utils'
-import { BlogWriter, searchOnGoogle } from '@ersanyamarya/langchain-addons'
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
-import { OpenAI } from 'langchain/llms/openai'
+import { koaMiddleware } from '@as-integrations/koa'
+import { mongoDbConfig, serverConfig } from '@codename-langchain/config'
+import { connectMongoDB, disconnectMongoDB } from '@codename-langchain/mongo'
+import apolloServerPlugin from '@ersanyamarya/apollo-graphql-helper'
+import { LOG_LEVEL, logger, setLogLevel } from '@ersanyamarya/common-node-utils'
+import { exceptions, getRootRoute, gracefulShutdown, koaApp, router } from '@ersanyamarya/essential-server-utils'
+import { createServer } from 'http'
+import { Context } from 'koa'
+import { exit } from 'process'
+import getSchema from './graphqlResources'
+const port = serverConfig.port
+setLogLevel(serverConfig.logLevel as LOG_LEVEL)
 
-import { writeFileSync } from 'fs'
-import { ChatOpenAI } from 'langchain/chat_models/openai'
-import axios from 'axios'
-// import { gotScraping } from 'got-scraping'
+const start = async (): Promise<void> => {
+  exceptions()
 
-const title = 'How does Sparkplug B change the IoT landscape?'
+  const mongoDB = connectMongoDB(mongoDbConfig.uri, mongoDbConfig.options)
+  const app = await koaApp()
+  const httpServer = createServer(app.callback())
+  const schema = await getSchema()
+  const apolloServer = await apolloServerPlugin(schema, httpServer)
 
-const model = new OpenAI({
-  openAIApiKey: openAIConfig.apiKey,
-  temperature: 0.1,
-  modelName: 'text-davinci-003',
-})
-const chatModel = new ChatOpenAI({
-  openAIApiKey: openAIConfig.apiKey,
-  temperature: 0.4,
-  modelName: 'gpt-3.5-turbo',
-})
-const embeddings = new OpenAIEmbeddings({
-  openAIApiKey: openAIConfig.apiKey,
-})
+  router.post(
+    '/graphql',
+    koaMiddleware(apolloServer, {
+      context: async ({ ctx }: any) => {
+        logger.debug(`operationName: ${ctx.request.body.operationName}`)
+        return ctx
+      },
+    })
+  )
+  router.get('/graphql', koaMiddleware(apolloServer))
+  router.get('/health', (ctx: Context) => {
+    // send 200 status OK
+    ctx.status = 200
+  })
 
-// const blogAgent = new BlogCreateAgent(model, serperAIConfig.apiKey, embeddings, redisClient)
-const blogWriter = new BlogWriter(model, chatModel, embeddings, serperAIConfig.apiKey, redisClient)
+  await getRootRoute({
+    healthChecks: { database: mongoDB.healthCheck },
+    name: 'Blaze Writer',
+    version: process.env.npm_package_version || '0.0.0',
+    developer: {
+      name: 'Sanyam Arya',
+      email: 'er.sanyam.arya@gmail.com',
+    },
+  })
 
-async function main() {
-  await redisClient.connect()
-  try {
-    const results = await searchOnGoogle(title, {
-      apiKey: serperAIConfig.apiKey,
-      gl: 'us',
-      youtube: true,
+  app.use(router.routes())
+
+  app.use(router.allowedMethods())
+
+  const server = app
+    .listen(port, async () => {
+      const host = `${serverConfig.host}:${port}`
+
+      logger.info(`Server listening ${host}`)
+      logger.info(`GraphQL server listening on ${host}/graphql`)
+    })
+    .on('error', err => {
+      logger.error(err)
+      exit(1)
     })
 
-    console.log(results.relatedSearches)
-
-    writeFileSync('data.json', JSON.stringify(results, null, 2))
-  } catch (e) {
-    logger.error(e)
+  const onShutdown = async (): Promise<void> => {
+    disconnectMongoDB()
   }
+
+  gracefulShutdown(server, onShutdown)
 }
 
-main()
+start()

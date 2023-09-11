@@ -32,11 +32,15 @@
     "verdaccio": "^5.0.4"
   },
   "dependencies": {
+    "@as-integrations/koa": "^1.1.1",
+    "@ersanyamarya/apollo-graphql-helper": "^0.0.9",
     "@ersanyamarya/common-node-utils": "^0.0.9",
     "@ersanyamarya/essential-server-utils": "^0.0.10",
     "@mozilla/readability": "^0.4.4",
     "axios": "^1.5.0",
     "cheerio": "^1.0.0-rc.12",
+    "graphql-compose": "^9.0.10",
+    "graphql-compose-mongoose": "^9.8.0",
     "hnswlib-node": "^1.4.2",
     "jsdom": "^22.1.0",
     "langchain": "^0.0.137",
