@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@codename-langchain/config": ["libs/config/src/index.ts"],
+      "@codename-langchain/mongo": ["libs/mongo/src/index.ts"],
       "@ersanyamarya/langchain-addons": ["libs/langchain-addons/src/index.ts"]
     }
   },
