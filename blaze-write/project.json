@@ -1,0 +1,67 @@
+{
+  "name": "blaze-write",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "blaze-write/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "compiler": "babel",
+        "outputPath": "dist/blaze-write",
+        "index": "blaze-write/src/index.html",
+        "baseHref": "/",
+        "main": "blaze-write/src/main.tsx",
+        "tsConfig": "blaze-write/tsconfig.app.json",
+        "assets": ["blaze-write/src/favicon.ico", "blaze-write/src/assets"],
+        "styles": [],
+        "scripts": [],
+        "isolatedConfig": true,
+        "webpackConfig": "blaze-write/webpack.config.js"
+      },
+      "configurations": {
+        "development": {
+          "extractLicenses": false,
+          "optimization": false,
+          "sourceMap": true,
+          "vendorChunk": true
+        },
+        "production": {
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/webpack:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "blaze-write:build",
+        "hmr": true
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "blaze-write:build:development"
+        },
+        "production": {
+          "buildTarget": "blaze-write:build:production",
+          "hmr": false
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["blaze-write/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  },
+  "tags": []
+}
